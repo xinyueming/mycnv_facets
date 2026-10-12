@@ -1,0 +1,35 @@
+name: CI
+on: [push]
+jobs:
+  build-and-test:
+    name: Build & test on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, ubuntu-20.04]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: conda-incubator/setup-miniconda@v2
+        with:
+          auto-update-conda: false
+          use-only-tar-bz2: true
+          miniforge-version: latest
+      - name: Install cnv_facets
+        run: |
+          mamba init
+          source ~/.bashrc
+          mamba create --yes -n cnv_facets
+          mamba activate cnv_facets
+          mamba install --yes -c bioconda -c conda-forge cnv_facets
+      - name: Install vcf_validator
+        run: |
+          curl -L -o test/vcf_validator -s https://github.com/EBIvariation/vcf-validator/releases/download/v0.9.1/vcf_validator_linux
+          chmod a+x test/vcf_validator
+          ./test/vcf_validator --help
+      - name: Run tests
+        run: |
+          source ~/.bashrc
+          mamba activate cnv_facets
+          cd test
+          Rscript testthat.R
+          python3 test_cnv_facets.py
