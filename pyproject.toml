@@ -1,0 +1,19 @@
+[project]
+name = "mycnv_facets"
+version = "0.1.0"
+description = "Python wrapper for cnv_facets CNV detection pipeline with gene annotation and tabular output"
+requires-python = ">=3.8"
+dependencies = [
+    "pysam>=0.21.0",
+    "click>=8.0.0",
+]
+
+[project.scripts]
+mycnv_facets = "mycnv_facets.cli:main"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.ruff.lint]
+ignore = ["SIM115"]  # conditional open() + try/finally is intentional
