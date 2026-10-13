@@ -3,3 +3,4 @@ test/vcf_validator
 __pycache__/
 *.egg-info/
 *.pyc
+test_data/

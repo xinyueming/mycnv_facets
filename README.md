@@ -351,3 +351,119 @@ recipients:
 
 * Post a question at https://www.biostars.org/ (you may want to notify me by
   sending an email to `dario <dot> beraldi <at> gmail <dot> com`)
+
+---
+
+mycnv_facets — Python wrapper
+=============================
+
+`mycnv_facets` is a Python wrapper that extends `cnv_facets.R` with:
+
+1. **Gene panel annotation** — matches CNV intervals against a gene list
+2. **Tabular output (TSV)** — simplified columns for downstream analysis
+3. **Normal chromosome identification** — identifies diploid chromosomes
+
+Installation
+------------
+
+```bash
+# Requires: Python 3.8+, pip/uv
+pip install mycnv_facets
+# Or from this repo:
+pip install -e .
+```
+
+Dependencies: `pysam`, `click`. The underlying `cnv_facets.R` must still be
+installed for the CNV detection step.
+
+Quick start
+-----------
+
+```bash
+# Full pipeline: CNV detection + annotation + table + normal chromosomes
+mycnv_facets \
+    -t tumor.bam -n normal.bam -vcf snps.vcf.gz \
+    -o sample1 \
+    --gene-list gene.list \
+    --refseq ncbiRefSeqCurated.txt.gz
+```
+
+```bash
+# Skip CNV detection if you already have a VCF
+mycnv_facets \
+    -vcf existing.vcf.gz \
+    -o sample1 \
+    --gene-list gene.list \
+    --refseq ncbiRefSeqCurated.txt.gz \
+    --skip-cnv-facets
+```
+
+Parameters
+----------
+
+All `cnv_facets.R` parameters are supported. Run `mycnv_facets --help` for the
+full list. Additional parameters:
+
+| Parameter | Description |
+|-----------|-------------|
+| `--gene-list` | Gene list file (one symbol per line) |
+| `--refseq` | RefSeq annotation file (ncbiRefSeqCurated format) |
+| `--skip-cnv-facets` | Skip cnv_facets.R; start from existing VCF |
+| `--skip-annotation` | Skip gene annotation |
+| `--skip-table` | Skip VCF-to-table conversion |
+| `--skip-normalizer` | Skip normal chromosome generation |
+
+Output files
+------------
+
+| File | Description |
+|------|-------------|
+| `<prefix>.vcf.gz` | CNV results (from cnv_facets.R) |
+| `<prefix>.annotated.vcf.gz` | VCF with `genes_in_panel` annotation |
+| `<prefix>.annotated.tsv` | Tabular output with simplified columns |
+| `<prefix>.normal_chrom.txt` | Comma-separated normal chromosomes |
+
+TSV columns
+-----------
+
+| Column | Source |
+|--------|--------|
+| `chrom` | CHROM |
+| `start` | POS |
+| `end` | END (from INFO) |
+| `alt` | SVTYPE, or `cn-LOH` when TCN_EM=2 and TCN_EM−LCN_EM≠LCN_EM |
+| `svtype` | SVTYPE (original) |
+| `length` | abs(SVLEN) |
+| `copy number` | TCN_EM |
+| `panel genes` | genes_in_panel |
+| `t_cn` | TCN_EM |
+| `l_cn` | LCN_EM |
+
+Example output
+--------------
+
+```
+$ cat sample1.annotated.tsv | head -3
+chrom   start   end     alt     svtype  length  copy number     panel genes     t_cn    l_cn
+chr1    1430985 246670330       DUP     DUP     245239346       4       MTOR,SDHB,CDA   4       1
+chr2    2031296 239787749       DUP     DUP     237756454       3       MYCN,GEN1,DNMT3A        3       1
+```
+
+```
+$ cat sample1.normal_chrom.txt
+chr10,chr22
+```
+
+Development
+-----------
+
+```bash
+# Install in editable mode
+pip install -e .
+
+# Run tests
+pytest tests/ -v
+
+# Lint
+ruff check src/mycnv_facets/ tests/
+```
