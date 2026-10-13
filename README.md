@@ -391,7 +391,7 @@ mycnv_facets \
 ```bash
 # Skip CNV detection if you already have a VCF
 mycnv_facets \
-    -vcf existing.vcf.gz \
+    --input-vcf existing.vcf.gz \
     -o sample1 \
     --gene-list gene.list \
     --refseq ncbiRefSeqCurated.txt.gz \
@@ -409,6 +409,7 @@ full list. Additional parameters:
 | `--gene-list` | Gene list file (one symbol per line) |
 | `--refseq` | RefSeq annotation file (ncbiRefSeqCurated format) |
 | `--skip-cnv-facets` | Skip cnv_facets.R; start from existing VCF |
+| `--input-vcf` | Input CNV VCF file (for `--skip-cnv-facets` mode) |
 | `--skip-annotation` | Skip gene annotation |
 | `--skip-table` | Skip VCF-to-table conversion |
 | `--skip-normalizer` | Skip normal chromosome generation |

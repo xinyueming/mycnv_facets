@@ -40,6 +40,7 @@ from mycnv_facets.normalizer import generate_normal_chrom
 @click.option("--gene-list", default=None, help="Gene list file (one symbol per line).")
 @click.option("--refseq", default=None, help="RefSeq annotation file (ncbiRefSeqCurated format).")
 @click.option("--skip-cnv-facets", is_flag=True, help="Skip cnv_facets.R step; start from existing VCF.")
+@click.option("--input-vcf", default=None, help="Input CNV VCF file (for --skip-cnv-facets mode).")
 @click.option("--skip-annotation", is_flag=True, help="Skip gene annotation step.")
 @click.option("--skip-table", is_flag=True, help="Skip VCF-to-table conversion.")
 @click.option("--skip-normalizer", is_flag=True, help="Skip normal chromosome generation.")
@@ -65,6 +66,7 @@ def main(
     gene_list: str | None,
     refseq: str | None,
     skip_cnv_facets: bool,
+    input_vcf: str | None,
     skip_annotation: bool,
     skip_table: bool,
     skip_normalizer: bool,
@@ -84,8 +86,6 @@ def main(
         if not snp_vcf:
             click.echo("Error: --snp-vcf is required unless --skip-cnv-facets or --pileup is set.", err=True)
             sys.exit(1)
-    elif skip_cnv_facets and not snp_vcf:
-        click.echo("Warning: --skip-cnv-facets without --snp-vcf; expecting <out>.vcf.gz to exist.", err=True)
 
     # Ensure output directory exists
     out_dir = str(Path(out).parent)
@@ -118,13 +118,13 @@ def main(
         click.echo(f"  VCF: {vcf_path}")
     else:
         # --skip-cnv-facets: use the provided VCF directly
-        if snp_vcf and Path(snp_vcf).exists():
-            vcf_path = snp_vcf
+        if input_vcf and Path(input_vcf).exists():
+            vcf_path = input_vcf
         elif Path(f"{out}.vcf.gz").exists():
             vcf_path = f"{out}.vcf.gz"
         else:
             click.echo(
-                f"Error: VCF file not found. Provide --snp-vcf or ensure {out}.vcf.gz exists.",
+                f"Error: VCF file not found. Provide --input-vcf or ensure {out}.vcf.gz exists.",
                 err=True,
             )
             sys.exit(1)

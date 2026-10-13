@@ -144,3 +144,37 @@ class TestRunCnvFacets:
             cmd = mock_run.call_args[0][0]
             assert "-p" in cmd
             assert "existing.csv.gz" in cmd
+
+    def test_captures_r_error_output(self):
+        """R script failure should include stderr in the exception."""
+        with patch("mycnv_facets.cnv_facets.find_cnv_facets_r", return_value="/fake/cnv_facets.R"), \
+             patch("subprocess.run") as mock_run:
+
+            mock_run.return_value = MagicMock(
+                returncode=1,
+                stderr="Error: BAM file not found\n",
+            )
+            with pytest.raises(RuntimeError, match="BAM file not found"):
+                run_cnv_facets(
+                    tumour_bam="t.bam",
+                    normal_bam="n.bam",
+                    snp_vcf="snps.vcf.gz",
+                    out="/tmp/sample1",
+                )
+
+    def test_error_includes_exit_code(self):
+        """Error message should include the exit code."""
+        with patch("mycnv_facets.cnv_facets.find_cnv_facets_r", return_value="/fake/cnv_facets.R"), \
+             patch("subprocess.run") as mock_run:
+
+            mock_run.return_value = MagicMock(
+                returncode=127,
+                stderr="command not found\n",
+            )
+            with pytest.raises(RuntimeError, match="exit code 127"):
+                run_cnv_facets(
+                    tumour_bam="t.bam",
+                    normal_bam="n.bam",
+                    snp_vcf="snps.vcf.gz",
+                    out="/tmp/sample1",
+                )

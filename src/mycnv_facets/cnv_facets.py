@@ -91,5 +91,9 @@ def run_cnv_facets(
     if rnd_seed:
         cmd += ["-s", rnd_seed]
 
-    subprocess.run(cmd, check=True)
+    result = subprocess.run(cmd, capture_output=True, text=True, check=False)
+    if result.returncode != 0:
+        raise RuntimeError(
+            f"cnv_facets.R failed with exit code {result.returncode}:\n{result.stderr}"
+        )
     return f"{out}.vcf.gz"
