@@ -99,12 +99,16 @@ def convert_vcf_to_table(
                 lcn_em = info.get("LCN_EM", ".")
 
                 # Compute alt column
+                # Priority: DEL (TCN_EM < 2) > cn-LOH > SVTYPE
                 alt = svtype
-                if tcn_em != "." and lcn_em != ".":
+                if tcn_em != ".":
                     tcn_val = int(tcn_em)
-                    lcn_val = int(lcn_em)
-                    if tcn_val == 2 and tcn_val - lcn_val != lcn_val:
-                        alt = "cn-LOH"
+                    if tcn_val < 2:
+                        alt = "DEL"
+                    elif lcn_em != ".":
+                        lcn_val = int(lcn_em)
+                        if tcn_val == 2 and tcn_val - lcn_val != lcn_val:
+                            alt = "cn-LOH"
 
                 copy_number = tcn_em if tcn_em != "." else "."
                 panel_genes = info.get("genes_in_panel", ".")

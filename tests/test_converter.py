@@ -139,6 +139,35 @@ class TestConvertVcfToTable:
         row2 = lines[2].strip().split("\t")
         assert row2[3] == "NEUTR"   # alt remains NEUTR
 
+    def test_tcn_em_less_than_2_alt_is_del(self):
+        """TCN_EM < 2 should produce alt=DEL regardless of SVTYPE."""
+        content = (
+            "##fileformat=VCFv4.2\n"
+            "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\n"
+            "chr1\t100\t1\tN\t<CNV>\t.\tPASS\tSVTYPE=DUP;SVLEN=100;END=200;TCN_EM=1;LCN_EM=0\n"
+            "chr2\t200\t2\tN\t<CNV>\t.\tPASS\tSVTYPE=HEMIZYG;SVLEN=50;END=250;TCN_EM=0;LCN_EM=0\n"
+        )
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".vcf", delete=False) as f:
+            f.write(content)
+            f.flush()
+            vcf_path = f.name
+
+        out_path = vcf_path.replace(".vcf", ".tsv")
+        convert_vcf_to_table(vcf_path, out_path)
+
+        with open(out_path) as f:
+            lines = f.readlines()
+
+        # TCN_EM=1 with SVTYPE=DUP → alt=DEL
+        row1 = lines[1].strip().split("\t")
+        assert row1[3] == "DEL"
+        assert row1[4] == "DUP"   # svtype column still shows original
+
+        # TCN_EM=0 with SVTYPE=HEMIZYG → alt=DEL
+        row2 = lines[2].strip().split("\t")
+        assert row2[3] == "DEL"
+        assert row2[4] == "HEMIZYG"
+
     def test_missing_panel_genes(self, sample_vcf):
         """Records without genes_in_panel should show '.'."""
         out_path = sample_vcf.replace(".vcf", ".tsv")

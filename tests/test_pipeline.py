@@ -13,7 +13,14 @@ from mycnv_facets.normalizer import generate_normal_chrom
 
 TEST_DATA = Path(__file__).resolve().parent.parent / "test_data"
 
+# Integration tests require test_data/ which is not tracked in git
+skip_no_data = pytest.mark.skipif(
+    not (TEST_DATA / "20C004I0008J.vcf.gz").exists(),
+    reason="test_data/ not available (not tracked in git)",
+)
 
+
+@skip_no_data
 @pytest.mark.integration
 class TestIntegrationPipeline:
     """End-to-end pipeline tests using test_data/."""
