@@ -51,7 +51,10 @@ def generate_normal_chrom(
             chrom_tcn[chrom] = tcn
 
     normal_chroms = []
+    sex_chromosomes = {"chrX", "chrY", "X", "Y"}
     for chrom, count in chrom_count.items():
+        if chrom in sex_chromosomes:
+            continue
         if count == 1 and chrom_tcn.get(chrom) == "2":
             normal_chroms.append(chrom)
 

@@ -95,3 +95,17 @@ class TestGenerateNormalChrom:
         generate_normal_chrom(tsv, out)
 
         assert Path(out).exists()
+
+    def test_excludes_sex_chromosomes(self):
+        """chrX and chrY should not appear in normal_chroms regardless of CN."""
+        tsv = self._make_tsv(
+            "chrX\t100\t200\tDUP\tDUP\t100\t2\t.\t2\t1\n"
+            "chrY\t100\t200\tDUP\tDUP\t100\t2\t.\t2\t1\n"
+            "chr1\t100\t200\tDUP\tDUP\t100\t2\t.\t2\t1\n"
+        )
+        out = tsv.replace(".tsv", ".txt")
+        result = generate_normal_chrom(tsv, out)
+
+        assert result == "chr1"
+        assert "chrX" not in result
+        assert "chrY" not in result
